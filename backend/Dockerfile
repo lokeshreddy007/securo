@@ -3,9 +3,14 @@ FROM python:3.14-slim
 WORKDIR /app
 
 # Install system deps for asyncpg
+# RUN apt-get update && apt-get install -y --no-install-recommends \
+#     gcc \
+#     libpq-dev \
+#     && rm -rf /var/lib/apt/lists/*
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libpq-dev \
+    redis-server \
     && rm -rf /var/lib/apt/lists/*
 
 # Dependencies come from uv.lock (the source of truth — see scripts/lock.sh).
@@ -29,4 +34,5 @@ RUN pip install --no-cache-dir --no-deps -e .
 EXPOSE 8000
 
 # CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-CMD alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000
+# CMD alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000
+CMD redis-server --daemonize yes && alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000
